@@ -1,0 +1,172 @@
+Q1.In a  random sample of 100 patients at a clinic, you would like to test whether the mean RDI is 10 or more using a one sided 5% type 1 error rate.
+The sample mean RDI was 12 with a standard deviation of 4. Do you reject the null hypothesis?
+
+Solution: test statistic=(12-10)/(4/10)=5. 
+5>qnorm(0.95)=1.64, so we reject the null.
+
+
+Q2. A pharmaceutical company is interested in testing a potential blood pressure lowering medication. 
+Their first examination considers only subjects that received the medication at baseline then two weeks later. The data are as follows (SBP in mmHg).
+Test the hypothesis that there was a mean reduction in blood pressure? Perform a two sided 5% level test and give the P-value.
+
+Solution: to construct two-sided t-test in R:
+bl<-c(140, 138, 150, 148, 135)
+fu<-c(132, 135, 151, 146, 130)
+t.test(bl,fu,paired=T)
+we have: 
+Paired t-test
+data:  bl and fu
+t = 2.2616, df = 4, p-value = 0.08652
+alternative hypothesis: true mean difference is not equal to 0
+95 percent confidence interval: -0.7739122  7.5739122
+sample estimates:mean difference 3.4 
+
+extentsion: to construct one-sided t-test in R, we do:
+t.test(fu,bl,alternative="less",paired=T) 
+we have:
+Paired t-test
+data:  fu and bl
+t = -2.2616, df = 4, p-value = 0.04326
+alternative hypothesis: true mean difference is less than 0
+95 percent confidence interval: -Inf -0.1951315
+sample estimates:
+mean difference  -3.4 //noticed the p-value of one-sided is halve that of two-sided, also notice fu is before bl in this case
+Given P-value greater than alpha=0.05, we fail to reject the null
+
+Q3. A sample of 9 men yielded a sample average brain volume of 1,100cc and a standard deviation of 30cc. For what values of 
+μ0	would a test of H0:μ=μ0 fail to reject the null hypothesis in a two sided 5% Students t-test?
+
+Solution: given alpha=0.05, sigma=30, u=1100
+1-0.05=P(-qt(0.975, 8)<= (x-1100)/(30/3) <= qt(0.975, 8))
+Lower bound of the interval=1100-(30/sqrt(9))qt(0.975, 8)=1077
+Upper bound of the interval=1100+(30/sqrt(9))qt(0.975, 8)=1123
+Alternatively, do 1100 + c(-1, 1) * qt(0.975, 8) * 30/sqrt(9)
+
+
+Q4. To further test a hospital triage system, administrators selected 200 nights and randomly assigned a new triage system to be used on 100 nights 
+and a standard system on the remaining 100 nights. They calculated the nightly median waiting time (MWT) to see a physician. 
+The average MWT for the new system was 4 hours with a standard deviation of .5 hours while the average MWT for the old system was 6 hours 
+with a standard deviation of 2 hours. Test the hypothesis of a decrease in the mean MWT associated with the new treatment using a two sided 5% Z test. 
+Does it appear to be effective?
+
+Solution: with Monte Carlo, we do:
+nosim<-10000
+n1<-n2<-100
+xbar<-4
+ybar<-6
+s1<-0.5
+s2<-2
+ybar-xbar+qnorm(0.975)*c(-1,1)*sqrt(s1^2/n1+s2^2/n2) //notice instead of qt in t-test, we do qnorm for two-sided z-test
+we have:
+[1] 1.595943 2.404057
+Since the decreases is non-zero(1.596-2.404), thus there is an effect.
+
+
+Q5. Suppose that 18 obese subjects were randomized, 9 each, to a new diet pill and a placebo. Subjects’ body mass indices (BMIs) were measured at a baseline 
+and again after having received the treatment or placebo for four weeks. The average difference from follow-up to the baseline (followup - baseline) 
+was −3 kg/m2 for the treated group and 1 kg/m2 for the placebo group. The corresponding standard deviations of the differences was 1.5 kg/m2 for the 
+treatment group and 1.8 kg/m2 for the placebo group. Does the change in BMI over the two year period appear to differ between the treated and placebo 
+groups?  Assuming of the underlying data normality and a common population variance, test the hypothesis with a two sided t test.
+
+Solution: to construct a two-sided 5% t-test in R, we do:
+n_plac <- n_treat <- 9
+mudiff_treat <- -3
+mudiff_plac <- 1
+sddiff_treat <- 1.5
+sddiff_plac <- 1.8
+ 
+s <- sqrt(((n_plac-1)*sddiff_plac^2 + (n_treat-1)*sddiff_treat^2)/(n_plac + n_treat -2)) //unequal variances
+t <- (mudiff_treat-mudiff_plac)/(s*sqrt(1/n_plac + 1/n_treat))
+2*pt(t,n_plac + n_treat-2) //multiplied by 2, since this is two-sided test
+we have: [1] 0.0001025174
+Since the resulting p value is 0.0001, less than 0.025, hence reject at the 5% level
+
+
+Q6.Suppose that 18 obese subjects were randomized, 9 each, to a new diet pill and a placebo. Subjects’ body mass indices (BMIs) were measured at a baseline
+and again after having received the treatment or placebo for four weeks. The average difference from follow-up to the baseline (followup - baseline) was −3
+kg/m2 for the treated group and 1 kg/m2 for the placebo group. The corresponding standard deviations of the differences was 1.5 kg/m2 for the treatment 
+group and 1.8 kg/m2 for the placebo group. Does the change in BMI over the two year period appear to differ between the treated and placebo groups?  
+Assuming normality of the underlying data and a common population variance, give the relevant 95% t confidence interval.
+
+Solution: notice assume normality for the test, so we do:
+n1<-n2<-9
+xbar<--3 //treated
+ybar<-1  //ctl
+s1<-1.5
+s2<-1.8
+xbar-ybar+qt(0.975,16)*c(-1,1)*sqrt(s1^2/n1+s2^2/n2) //treated-ctrl, not the other way around
+which gives:
+[1] -5.655699 -2.344301
+
+Q7. Suppose that systolic blood pressures were taken on 16 oral contraceptive users and 16 controls at baseline and again then two years later. The average 
+difference from follow-up SBP to the baseline (followup - baseline) was 11 mmHg for oral contraceptive users and 4 mmHg for controls. The corresponding 
+standard deviations of the differences was 20 mmHg for OC users and 28 mmHg for controls. Assuming that blood pressure are normally distributed and an 
+equal variance, give a P-value for a two sided hypothesis test that the change in BP differs for OC users compared to controls.
+
+Solution:
+n_plac <- 16
+n_treated<- 16
+mudiff_treat <- 11
+mudiff_plac <- 4
+sddiff_plac <- 20
+sddiff_treat <- 28
+
+s <- sqrt(((n_plac-1)*sddiff_plac^2 + (n_treat-1)*sddiff_treat^2)/(n_plac + n_treat -2))
+t <- (mudiff_plac-mudiff_treat)/(s*sqrt(1/n_plac + 1/n_treat))
+2*pt(t,n_plac + n_treat-2)
+which gives:
+[1] 0.4222096
+
+Q8.Researchers would like to conduct a study of 100 healthy adults to detect a four year mean brain volume loss of  .01mm3. 
+Assume that the standard deviation of four year volume loss in this population is .04mm3. What would be the power of the study for a 5% one sided test 
+versus a null hypothesis of no volume loss?
+
+Solution: alpha=0.05, sigma=0.04, x=0.01, n=100
+power.t.test(n=100,delta=0.01/0.04,type="one.sample",alt="one.sided")
+Alternatively, test statistic=sqrt(n)*(x/sigma)=10*(0.01/0.04)=2.5
+Since this is one-sided test, pnorm(0.95(<-1-alpha))=1.645,
+1.645-0.01*10/0.04=-0.855
+thus, pnorm(-0.855, lower.tail=FALSE)
+we get:
+One-sample t test power calculation 
+n = 100
+delta = 0.25
+sd = 1
+sig.level = 0.05
+power = 0.7989855
+alternative = one.sided
+
+alternatively, we get
+[1] 0.8037244
+
+Q9. The Daily Planet ran a recent story about Kryptonite poisoning in the water supply after a recent event in Metropolis. Their usual field reporter, 
+Clark Kent, called in sick and so Lois Lane reported the stories. Researchers sampled 288 individuals and found mean blood Kryptonite levels of 44, 
+both measured in Lex Luthors per milliliter (LL/ml). They compared this to 288 sampled individuals from Gotham city who had an average level of 42.04. 
+Report the Pvalue for a two sided Z test of the relevant hypothesis. Assume that the standard deviation is 12 for both groups.
+
+Solution:
+2*pnorm(44,mean=42.04,sd=sqrt(12^2/288+12^2/288),lower.tail=F)
+[1] 0.04999579
+
+Q10. As your variance goes up, what happens to power?
+test statistic=sqrt(n)(x-u)/sigma; if sigma goes up, power goes down
+
+
+Q11. Suppose that you have three independent samples from a N(μ1,σ2), N(μ2,σ2) and N(μ3,σ2) respectively of size n1, n2 and n3. Let 
+S1^2, S2^2 and S3^2 be the associated sample variances. Would 1/3*S1^2+1/3*S2^2+1/3*S3^2 be unbiased?
+
+Solution: 
+E[1/3*S1^2+1/3*S2^2+1/3*S3^2]=E[1/3*S1^2]+E[1/3*S2^2]+E[1/3*S3^2]=1/3(σ^2)*3=σ^2, thus it is unbiased without assuming normality.
+
+
+Q12. Consider any of the hypothesis tests we've covered in class. If you know you reject at a specific level of α, then you know what else?
+
+Solution: You would reject for any larger value of α.
+
+
+Q13. 
+Consider a one sided α level single group Z test of H0:μ=μ0 versus the alternative Ha:μ<μ0 with the data X_bar for the sample mean and s for 
+the sample standard deviation with n measurements. What are the collection of points for which you would fail to reject the hypothesis?
+
+Solution: pValue > alpha: fail to reject H0.
+sqrt(n)*(x-u0)/s>Z(alpha), u0<x-s*Z(apha)/sqrt(n)=x+s*Z(1-alpha)/sqrt(n)
